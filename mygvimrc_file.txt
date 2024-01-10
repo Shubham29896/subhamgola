@@ -1,0 +1,103 @@
+set bs=2
+set guifont=Courier\ 20
+set textwidth =0
+set wrapmargin =0
+set tabstop=4
+set expandtab
+"set cursorline
+set showcmd
+filetype indent on
+set wildmenu
+set showmatch
+set incsearch
+set hlsearch
+set number
+syntax enable
+set syn=on
+" setting *.svh file format to verilog_systemverilog syntax highlite
+"au BufRead,BufNewFile *.svh,*.sv setfiletype verilog_systemverilog
+au BufRead,BufNewFile ERROR,Error,error,WARNING,Warning setfiletype vera
+au BufRead,BufNewFile *.v,*.sv,*.svh let b:match_words = '\<task\>:\<endtask\>,\<function\>:\<endfunction\>,\<begin\>:\<end\>,\<class\>:\<endclass\>,\<case\>:\<endcase\>'
+au BufNewFile,BufRead *.log.gz,*.log setfiletype vera
+"au BufNewFile,BufRead *.log.* setfiletype vera
+set autoindent
+noremap <3-LeftMouse> *<ESC>
+inoremap <3-LeftMouse> <c-o>*
+set tags=./tags,tags;$HOME
+"abbrevation syntax: ab abbrevation_name command" 
+abbr _pt drPassthru
+
+
+function! Falseflag(f,s)
+        execute 's/^/- Fixed ' . a:f . ' False Violation                                                [HSD ' . a:s .']\r'
+endfunction
+
+function! Missingflag(f,s)
+        execute 's/^/- Fixed ' . a:f . ' Missing Violation                                              [HSD ' . a:s .']\r'
+endfunction
+
+
+function! Debugrve(l,s)
+        execute 's/^/' . a:l . '_' . a:s . ' { \r'
+        execute 's/^/     COPY ' . a:l . '\r'
+        execute 's/^/    \/\/DFM RDB ' . a:l . ' "my_debug.rdb"\r'
+        execute 's/^/}\r'
+        execute 's/^/ DRC CHECK MAP ' . a:l . '_' . a:s . ' ASCII \r'
+        execute 's/^/ DRC CHECK MAP ' . a:l . '_' . a:s . ' OASIS  999 ' . a:s . ' $DR_OUTPUT_FILE \r'
+endfunction
+
+function! Tab_to_complete()
+        if col('.')>1 && strpart( getline('.'), col('.')-2,3 ) =~'^\w'
+                return "\<C-N>"
+        else
+                return "\<Tab>"
+        endif
+endfunction
+:inoremap <Tab> <C-R>=Tab_to_complete()<CR>
+
+
+"function! Search_polygon()
+"        set switchbuf+=usetab,newtab
+"        exe printf('%s%s%s','vim /^\s*',expand('<cWORD>'),'\s*=/g ./*')
+"        set switchbuf-=usetab,newtab
+"endfunction
+
+ function! Search_polygon()
+         set switchbuf+=usetab,newtab
+         if expand('<cWORD>')  =~'^(' || expand('<cWORD>')  =~')$' || expand('<cWORD>')  =~',' || expand('<cWORD>')  =~';'
+                 echo "SEARCH ERROR : Special Character detected ==> " .expand('<cWORD>')
+                 let var = input("Enter Input Search Pattern: ")
+                 exe printf('%s%s%s','vim /^\s*',var,'\s*=/g ./*')
+                 "exe printf('%s',expand('<CR>'))
+         else
+                 exe printf('%s%s%s','vim /^\s*',expand('<cWORD>'),'\s*=/g ./*')
+         endif
+         set switchbuf-=usetab,newtab
+ endfunction
+
+
+function! Search_function()
+        set switchbuf+=usetab,newtab
+        if expand('<cWORD>')  =~'^(' || expand('<cWORD>')  =~')$' || expand('<cWORD>')  =~',' || expand('<cWORD>')  =~';'
+                echo "SEARCH ERROR : Invalid input pattern, special character detected ==> " .expand('<cWORD>')
+                let var = input("Enter Input Search Pattern: ")
+                exe printf('%s%s%s','vimgrep /^\s*',var,':/g ./*')
+        else
+                exe printf('%s%s%s','vimgrep /^\s*',expand('<cWORD>'),'\s*:/g ./*')
+        endif
+        set switchbuf-=usetab,newtab
+endfunction
+
+map sp :call Search_polygon() <CR>
+map sf :call Search_function() <CR>
+"map sf :vimgrep /:/g ./*<left><left><left><left><left><left><left>
+"map sp :vimgrep /\s*=/g ./*<left><left><left><left><left><left><left><left><left><left>
+map ss :%s///ng<left><left><left><left>
+map ff :call Falseflag('','')<left><left><left><left><left>
+map fm :call Missingflag('','')<left><left><left><left><left>
+map ee :call Debugrve('','')<left><left><left><left><left>
+set tabpagemax=250
+set guitablabel=\[%N\]\ %t\ %M
+colorscheme elflord
+"autocmd InsertEnter * highlight Visual gui=NONE guibg=#A0A0FF guifg=Blue
+hi Visual  guifg=White guibg=Red gui=none
